@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
         progressBar.visibility = View.GONE
     }
 
-    // TODO: add any other fields to the activity as you want
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -97,13 +96,6 @@ class MainActivity : AppCompatActivity() {
         }
         registerReceiver(broadcastReceiverForSuccess, IntentFilter("found_roots"))
         registerReceiver(broadcastReceiverForFailure, IntentFilter("stopped_calculations"))
-
-        /*
-    todo:
-     add a broadcast-receiver to listen for abort-calculating as defined in the spec (below)
-     to show a Toast, use this code:
-     `Toast.makeText(this, "text goes here", Toast.LENGTH_SHORT).show()`
-     */
     }
 
     override fun onDestroy() {
