@@ -41,7 +41,7 @@ package exercise.find.roots
                     return
                 }
             }
-            sendSuccessBroadcast(numberToCalculateRootsFor, 1, 0L)  // in case number is prime
+            sendSuccessBroadcast(numberToCalculateRootsFor, 1, numberToCalculateRootsFor)  // in case number is prime
         }
     }
 }

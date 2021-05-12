@@ -12,10 +12,14 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.lang.NumberFormatException
+import java.math.BigInteger
 
 class MainActivity : AppCompatActivity() {
     private var broadcastReceiverForSuccess: BroadcastReceiver? = null
     private var broadcastReceiverForFailure: BroadcastReceiver? = null
+    private var isCalculating = false
+    private var currInput = ""
 
     /**
      * this function enables user-input and the calculate button and hides the progress bar
@@ -24,6 +28,17 @@ class MainActivity : AppCompatActivity() {
         userInput.isEnabled = true
         calcButton.isEnabled = true
         progressBar.visibility = View.GONE
+        isCalculating = false
+    }
+
+    /**
+     * this function enables user-input and the calculate button and hides the progress bar
+     */
+    private fun startCalculation(userInput: View, calcButton: View, progressBar: View){
+        userInput.isEnabled = false
+        calcButton.isEnabled = false
+        progressBar.visibility = View.VISIBLE
+        isCalculating = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +60,13 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
                 // text did change
-                val newText = editTextUserInput.text.toString()
-                buttonCalculateRoots.isEnabled = true
-                // todo: check conditions to decide if button should be enabled/disabled (see spec below)
+                currInput = editTextUserInput.text.toString()
+                try {
+                    currInput.toLong()
+                } catch (e: NumberFormatException){
+                    buttonCalculateRoots.isEnabled = false
+                }
+                buttonCalculateRoots.isEnabled = currInput != ""
             }
         })
 
@@ -56,12 +75,10 @@ class MainActivity : AppCompatActivity() {
             val intentToOpenService = Intent(this@MainActivity, CalculateRootsService::class.java)
             val userInputString = editTextUserInput.text.toString()
             // todo: check that `userInputString` is a number. handle bad input. convert `userInputString` to long
-            val userInputLong: Long = userInputString.toLong()
-            intentToOpenService.putExtra("number_for_service", userInputLong)
+            val userInputLong: BigInteger = userInputString.toBigInteger()
+            intentToOpenService.putExtra("number_for_service", userInputLong.toLong())
             startService(intentToOpenService)
-            buttonCalculateRoots.isEnabled = false
-            editTextUserInput.isEnabled = false
-            progressBar.visibility = View.VISIBLE
+            startCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
         }
 
         // register a broadcast-receiver to handle action "found_roots"
@@ -74,8 +91,7 @@ class MainActivity : AppCompatActivity() {
                 val root1 = incomingIntent.getIntExtra("root1", 0)
                 val root2 = incomingIntent.getLongExtra("root2", 0)
                 // check if number is prime or not and return the appropriate message
-                val msg = if(root1==1) String.format("%d is a prime number", originalNum) else
-                    String.format("The roots found for the number %d are: %d, %d",originalNum, root1, root2)
+                val msg = String.format("%d*%d=%d", root1, root2, originalNum)
                 Toast.makeText(myActivity, msg, Toast.LENGTH_LONG).show()
                 finishCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
             }
@@ -84,12 +100,9 @@ class MainActivity : AppCompatActivity() {
         broadcastReceiverForFailure = object : BroadcastReceiver() {
             override fun onReceive(context: Context, incomingIntent: Intent) {
                 if (incomingIntent.action != "stopped_calculations") return
-                // success finding roots!
-                val originalNum = incomingIntent.getLongExtra("original_number", 0)
                 val secondsElapsed = incomingIntent.getLongExtra("time_until_give_up_seconds",
                         0)
-                val msg = String.format("Couldn't find roots for the number %d," +
-                        " calculation aborted after %d sec", originalNum, secondsElapsed)
+                val msg = String.format("calculation aborted after %d sec", secondsElapsed)
                 Toast.makeText(myActivity, msg, Toast.LENGTH_LONG).show()
                 finishCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
             }
@@ -106,11 +119,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        // TODO: put relevant data into bundle as you see fit
+        outState.putString("currentInput", currInput);
+        outState.putBoolean("isCalculating", isCalculating);
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        // TODO: load data from bundle and set screen state (see spec below)
+        setContentView(R.layout.activity_main)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
+        val editTextUserInput = findViewById<EditText>(R.id.editTextInputNumber)
+        val buttonCalculateRoots = findViewById<Button>(R.id.buttonCalculateRoots)
+
+        isCalculating = savedInstanceState.getBoolean("isCalculating", false)
+        currInput = savedInstanceState.getString("currentInput", "")
+        editTextUserInput.setText(currInput)
+
+        if (isCalculating) startCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
+        else finishCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
     }
 }
