@@ -7,7 +7,7 @@ package exercise.find.roots
                 import kotlin.math.sqrt
 
         class CalculateRootsService : IntentService("CalculateRootsService") {
-            private fun sendSuccessBroadcast(original_num: Long, root1: Int, root2: Long) {
+            private fun sendSuccessBroadcast(original_num: Long, root1: Long, root2: Long) {
                 val broadcastIntent = Intent("found_roots")
                 broadcastIntent.putExtra("original_number", original_num)
                 broadcastIntent.putExtra("root1", root1)
@@ -33,7 +33,7 @@ package exercise.find.roots
             val sqrt = ceil(sqrt(numberToCalculateRootsFor.toDouble()))
             for (i in 2..sqrt.toInt()) {
                 if(numberToCalculateRootsFor % i == 0L){
-                    sendSuccessBroadcast(numberToCalculateRootsFor, i, numberToCalculateRootsFor / i)
+                    sendSuccessBroadcast(numberToCalculateRootsFor, i.toLong(), numberToCalculateRootsFor / i)
                     return
                 }
                 if(System.currentTimeMillis() - timeStartMs > 20000) {

@@ -2,6 +2,11 @@
 
 An Android exercise for developers teaching how to play around with intents, activities, services and broadcast receivers
 
+I pledge the highest level of ethical principles in support of academic excellence. I ensure that all of my work reflects my own abilities and not those of someone else
+
+Answer to theoretical question: We can overwrite the max calculation time to be 200ms during
+testing only by 
+
 ## To fulfill this exercise:
 
 > take a loot at file `CalculateRootsService.java`

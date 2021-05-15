@@ -74,7 +74,6 @@ class MainActivity : AppCompatActivity() {
         buttonCalculateRoots.setOnClickListener { v: View? ->
             val intentToOpenService = Intent(this@MainActivity, CalculateRootsService::class.java)
             val userInputString = editTextUserInput.text.toString()
-            // todo: check that `userInputString` is a number. handle bad input. convert `userInputString` to long
             val userInputLong: BigInteger = userInputString.toBigInteger()
             intentToOpenService.putExtra("number_for_service", userInputLong.toLong())
             startService(intentToOpenService)
@@ -88,11 +87,13 @@ class MainActivity : AppCompatActivity() {
                 if (incomingIntent.action != "found_roots") return
                 // success finding roots!
                 val originalNum = incomingIntent.getLongExtra("original_number", 0)
-                val root1 = incomingIntent.getIntExtra("root1", 0)
+                val root1 = incomingIntent.getLongExtra("root1", 0)
                 val root2 = incomingIntent.getLongExtra("root2", 0)
                 // check if number is prime or not and return the appropriate message
                 val msg = String.format("%d*%d=%d", root1, root2, originalNum)
-                Toast.makeText(myActivity, msg, Toast.LENGTH_LONG).show()
+                val successIntent = Intent(this@MainActivity, SuccessActivity::class.java)
+                successIntent.putExtra("message", msg)
+                startActivity(successIntent)
                 finishCalculation(editTextUserInput, buttonCalculateRoots, progressBar)
             }
         }
